@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  sentry-postgres:
+    image: postgres:14
+    env_file: .env
+    volumes:
+      - sentry-postgres:/var/lib/postgresql/data
+
+  sentry-redis:
+    image: redis:6.2
+
+  sentry-web:
+    image: sentry:latest
+    depends_on:
+      - sentry-postgres
+      - sentry-redis
+    ports:
+      - "9000:9000"
+    env_file: .env
+
+  sentry-cron:
+    image: sentry:latest
+    depends_on:
+      - sentry-postgres
+      - sentry-redis
+    command: "sentry run cron"
+    env_file: .env
+
+  sentry-worker:
+    image: sentry:latest
+    depends_on:
+      - sentry-postgres
+      - sentry-redis
+    command: "sentry run worker"
+    env_file: .env
+
+volumes:
+  sentry-postgres:
